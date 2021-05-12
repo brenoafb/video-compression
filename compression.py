@@ -2,6 +2,40 @@ import numpy as np
 from block_utils import blocks_to_frame
 from img_utils import scale_to_img
 
+def build_frame(frame, residual, motion_vectors, block_size):
+  '''
+  Build frame i+1 from frame i
+  '''
+  blocks_per_column = frame.shape[0] // block_size
+  blocks_per_row = frame.shape[1] // block_size
+  coords = []
+  for i in range(blocks_per_column):
+      i1 = i * block_size
+      for j in range(blocks_per_row):
+          j1 = j * block_size
+          coords.append((i1, j1))
+    
+  blocks = []
+  for (motion_vector, (i1, j1)) in zip(motion_vectors, coords):
+      block = get_block_from_motion_vectors(frame, motion_vector, block_size, i1, j1)
+      blocks.append((block, (i1, j1)))
+  
+  next_frame = blocks_to_frame(blocks, frame.shape[0], frame.shape[1])
+  next_frame += residual
+
+  return next_frame
+
+def get_block_from_motion_vectors(frame, motion_vector, block_size, i1, j1):
+  '''
+  Find the corresponding block in frame i+1 from frame i
+  '''
+  i0 = i1 - motion_vector[0]
+  j0 = j1 - motion_vector[1]
+
+  block = frame[i0 : i0 + block_size, j0 : j0 + block_size, :]
+  return block
+
+
 def get_residual_and_vectors(frame, blocks, delta):
   block_size = blocks[0][0].shape[0]
   height, width= frame.shape
