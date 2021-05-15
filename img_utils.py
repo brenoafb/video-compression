@@ -6,9 +6,9 @@ def scale_to_img(array):
     range [0,255]
     '''
     array = array.astype(np.float32)
-    vmin = array.min()
-    array -= vmin
-    vmax = array.max()
-    array /= vmax
+    m = array.min()
+    array -= m
+    M = array.max()
+    array /= M
     array *= 255
-    return array.astype(np.uint8), vmin, vmax
+    return (array.astype(np.uint8), m, M)

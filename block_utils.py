@@ -1,5 +1,15 @@
 import numpy as np
 
+def get_block_from_motion_vectors(frame, motion_vector, block_size, i1, j1):
+  '''
+  Find the corresponding block in frame i+1 from frame i
+  '''
+  i0 = i1 - motion_vector[0]
+  j0 = j1 - motion_vector[1]
+
+  block = frame[i0 : i0 + block_size, j0 : j0 + block_size, :]
+  return block
+
 def get_blocks(mat: np.ndarray, block_size: int) -> tuple:
     '''
     Break a matrix into square blocks of the specified size
@@ -25,7 +35,7 @@ def blocks_to_frame(blocks, height, width):
     (height, width)
     '''
     block_size = blocks[0][0].shape[0]
-    img = np.zeros((height, width, 3), dtype=np.uint8)
+    img = np.zeros((height, width, 3))
     for (block, coords) in blocks:
         p = coords[0]
         q = coords[1]
