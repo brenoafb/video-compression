@@ -61,28 +61,35 @@ def getFrame(video_bytes, first=False):
   vector = []
   offset = 0
 
-  bits_size = int.from_bytes(video_bytes[:2], byteorder='big')
-  bytes_used = int(np.ceil(bits_size/8))
-  offset = 2 + bytes_used
-  bit_vector = bs.Bits(bytes= video_bytes[2:offset], length= bits_size)
-  vmin_n = int.from_bytes(video_bytes[offset: offset+1], byteorder='big')
-  vmax_n = int.from_bytes(video_bytes[offset+1:offset+2], byteorder='big')
-  offset = offset+2
-  img_bytes = video_bytes[offset : 144*176 + offset]
-  offset = 144*176 + offset
-  img = None
+  if not first:
+    bits_size = int.from_bytes(video_bytes[:2], byteorder='big')
+    bytes_used = int(np.ceil(bits_size/8))
+    offset = 2 + bytes_used
+    bit_vector = bs.Bits(bytes= video_bytes[2:offset], length= bits_size)
+    vmin_n = int.from_bytes(video_bytes[offset: offset+2], byteorder='big', signed= True)
+    vmax_n = int.from_bytes(video_bytes[offset+2:offset+4], byteorder='big', signed= True)
+    offset = offset+4
+    for i in range(num_blocks):
+      bit_vector, value1 = readNumber(bit_vector)
+      bit_vector, value2 = readNumber(bit_vector)
+      vector.append((value1, value2))
+
+  img_len = int.from_bytes(video_bytes[offset: offset+3], byteorder='big')
+  offset = offset+3
+  img_bytes = video_bytes[offset:img_len + offset]
+  offset = img_len + offset
+  img_array = None
   
   with io.BytesIO() as f:
     f.write(img_bytes)
-    img = Image.open(f)
-    img.load()
+    with Image.open(f) as im:
+      img_array = np.asarray(im)
 
-  for i in range(num_blocks):
-    bit_vector, value1 = readNumber(bit_vector)
-    bit_vector, value2 = readNumber(bit_vector)
-    vector.append((value1, value2))
+  if first:
+    return img_array, video_bytes[offset:]
 
-  return np.array(vector), vmin_n, vmax_n, img, video_bytes[offset:]
+  else:
+    return np.array(vector), vmin_n, vmax_n, img_array, video_bytes[offset:]
 
 #--File writing------
 
@@ -94,11 +101,13 @@ def writeVector(motion_vectors, video_bits):
 #f = file object
 def writeFrame(f, residual, motion_vectors, vmin, vmax, first=False):
   residual_jpg = encodeToJpeg(residual)
-  bits = writeVector(motion_vectors, bs.Bits(bin= '0b'))
-  #Tamanho em bits do vetor (incluso padding)
-  bs.Bits(uint= bits.len, length=16).tofile(f)
-  bits.tofile(f)
-  bs.Bits(uint= int(vmin), length=8).tofile(f)
-  bs.Bits(uint= int(vmax), length=8).tofile(f)
+  if not first:
+    bits = writeVector(motion_vectors, bs.Bits(bin= '0b'))
+    #Tamanho em bits do vetor (incluso padding)
+    bs.Bits(uint= bits.len, length=16).tofile(f)
+    bits.tofile(f)
+    bs.Bits(int= int(vmin), length=16).tofile(f)
+    bs.Bits(int= int(vmax), length=16).tofile(f)
   img = residual_jpg
+  bs.Bits(uint= len(img), length=24).tofile(f)
   f.write(img)
