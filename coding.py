@@ -28,6 +28,12 @@ def encodeToJpeg(residual):
       im.save(f, format='JPEG')
       return f.getvalue()
 
+def decodeFromJpeg(img_bytes):
+    with io.BytesIO() as f:
+      f.write(img_bytes)
+      with Image.open(f) as im:
+        return np.asarray(im)
+
 #--File reading------
 
 def readNumber(file_bits: bs.Bits):
@@ -78,12 +84,8 @@ def getFrame(video_bytes, first=False):
   offset = offset+3
   img_bytes = video_bytes[offset:img_len + offset]
   offset = img_len + offset
-  img_array = None
-  
-  with io.BytesIO() as f:
-    f.write(img_bytes)
-    with Image.open(f) as im:
-      img_array = np.asarray(im)
+
+  img_array = decodeFromJpeg(img_bytes)
 
   if first:
     return img_array, video_bytes[offset:]

@@ -1,7 +1,9 @@
 import numpy as np
 from block_utils import blocks_to_frame, get_blocks, get_block_from_motion_vectors 
-from img_utils import scale_to_img
+from img_utils import scale_to_img, scale_from_img
+from decompression import build_frame
 import matplotlib.pyplot as plt
+from coding import encodeToJpeg, decodeFromJpeg
 
 def compress_sequence(frames, block_size, delta):
   '''
@@ -9,7 +11,9 @@ def compress_sequence(frames, block_size, delta):
   and motion vectors
   '''
   first_frame = frames[0]
-  prev_frame = first_frame
+  first_frame_jpeg_bytes = encodeToJpeg(first_frame)
+  first_frame_jpeg = decodeFromJpeg(first_frame_jpeg_bytes)
+  prev_frame = first_frame_jpeg
   residuals = []
   motion_vectors = []
   for (i, curr_frame) in enumerate(frames[1:]):
@@ -22,7 +26,13 @@ def compress_sequence(frames, block_size, delta):
     # scaled_residual += m
     residuals.append((residual, m, M))
     motion_vectors.append(motion_vector)
-    prev_frame = curr_frame
+    #print(residual_original)
+    #prev_frame = curr_frame
+    residuejpeg_bytes = encodeToJpeg(residual)
+    residuejpeg = decodeFromJpeg(residuejpeg_bytes)
+    rec_residue = scale_from_img(residuejpeg, m, M)
+    print(np.amin(residual), np.amin(residuejpeg))
+    prev_frame = build_frame(prev_frame, rec_residue, motion_vector, block_size)
   return (first_frame, residuals, motion_vectors)
 
 def get_residual_and_vectors(frame, blocks, delta):
@@ -39,8 +49,9 @@ def get_residual_and_vectors(frame, blocks, delta):
       block_residual = block.astype(np.float32) - found_block.astype(np.float32)
       block_residuals.append((block_residual, coords))
       motion_vectors.append(motion_vector)
-
-  (residual, m, M) = scale_to_img(blocks_to_frame(block_residuals, height, width))
+      
+  residual_original = blocks_to_frame(block_residuals, height, width)
+  (residual, m, M) = scale_to_img(residual_original)
   return (residual, m, M, motion_vectors)
 
 def get_matching_block(mat: np.ndarray, block: np.ndarray, i0: int, j0: int, delta: int) -> np.ndarray:
