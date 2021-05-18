@@ -1,5 +1,5 @@
 import numpy as np
-from block_utils import blocks_to_frame, get_blocks, get_block_from_motion_vectors 
+from block_utils import blocks_to_frame, get_blocks, get_block_from_motion_vectors
 from img_utils import scale_to_img, scale_from_img
 from decompression import build_frame
 import matplotlib.pyplot as plt
@@ -41,11 +41,18 @@ def get_residual_and_vectors(frame, blocks, delta):
   height, width, _ = frame.shape
   block_residuals = []
   motion_vectors = []
+  #plt.figure(0)
+  #plt.imshow(blocks[0][0])
+  i = 0
   for (block, coords) in blocks:
       found_coords = get_matching_block(frame, block, coords[0], coords[1], delta)
       found_block = frame[found_coords[0] : found_coords[0] + block_size,
                           found_coords[1] : found_coords[1] + block_size,
                           :]
+      #if i == 0:
+        #i +=1
+        #plt.figure(1)
+        #plt.imshow(found_block)
       motion_vector = (coords[0] - found_coords[0], coords[1] - found_coords[1])
       block_residual = block.astype(np.float32) - found_block.astype(np.float32)
       block_residuals.append((block_residual, coords))
@@ -75,7 +82,9 @@ def get_matching_block(mat: np.ndarray, block: np.ndarray, i0: int, j0: int, del
     for i in range(start_i, stop_i):
         for j in range(start_j, stop_j):
             curr_block = mat[i : i + block_size, j : j + block_size, :]
-            err = np.linalg.norm(block - curr_block)
+            #print("Aqui")
+            #err = np.linalg.norm(block - curr_block)
+            err = np.sum((block.astype(np.float32) - curr_block.astype(np.float32))**2)
             if err < min_err:
                 min_err = err
                 coords = (i, j)
