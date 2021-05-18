@@ -8,7 +8,20 @@ def scale_to_img(array):
     array = array.astype(np.float32)
     m = array.min()
     array -= m
-    M = array.max()
+    M = array.max() #Max value after the zero dislocation
     array /= M
     array *= 255
+    array = np.around(array)
     return (array.astype(np.uint8), m, M)
+
+def scale_from_img(residual, m, M):
+    '''
+    given an array and the values used to scale it, recover the original values
+    '''
+    scaled_residual = residual.astype(np.float32)
+    scaled_residual *= M
+    scaled_residual /= 255
+    scaled_residual += m
+    scaled_residual = np.around(scaled_residual)
+
+    return scaled_residual.astype(np.float32)

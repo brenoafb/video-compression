@@ -1,6 +1,6 @@
 import numpy as np
 from block_utils import blocks_to_frame, get_block_from_motion_vectors 
-from img_utils import scale_to_img
+from img_utils import scale_to_img, scale_from_img
 
 def build_sequence(frame, residuals, motion_vectors, block_size):
   '''
@@ -10,10 +10,8 @@ def build_sequence(frame, residuals, motion_vectors, block_size):
   prev_frame = None
   for ((residual, m, M), motion_vector) in zip(residuals, motion_vectors):
 
-    scaled_residual = residual.astype(np.float32)
-    scaled_residual /= 255.0
-    scaled_residual *= M
-    scaled_residual += m
+    scaled_residual = scale_from_img(residual, m, M)
+    #print(scaled_residual)
 
     if prev_frame is None:
       curr_frame = build_frame(frame, scaled_residual, motion_vector, block_size)
@@ -43,5 +41,8 @@ def build_frame(frame, residual, motion_vectors, block_size):
   
   next_frame = blocks_to_frame(blocks, frame.shape[0], frame.shape[1])
   next_frame += residual
+  next_frame = np.around(next_frame)
+  next_frame[next_frame > 255] = 255
+  next_frame[next_frame < 0] = 0
 
   return next_frame.astype(np.uint8)
