@@ -31,7 +31,7 @@ def compress_sequence(frames, block_size, delta):
     residuejpeg_bytes = encodeToJpeg(residual)
     residuejpeg = decodeFromJpeg(residuejpeg_bytes)
     rec_residue = scale_from_img(residuejpeg, m, M)
-    print(np.amin(residual), np.amin(residuejpeg))
+    print(np.amin(residual), np.amin(rec_residue))
     prev_frame = build_frame(prev_frame, rec_residue, motion_vector, block_size)
   return (first_frame, residuals, motion_vectors)
 

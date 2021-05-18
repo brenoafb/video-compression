@@ -21,11 +21,11 @@ def codeExpGolombExt(number):
   code += bs.Bits(uint= value+1, length= size)
   return code
 
-def encodeToJpeg(residual):
+def encodeToJpeg(residual, quality = 95):
     #bytesio_residual = io.BytesIO(residual.astype(np.uint8).tobytes())
     with io.BytesIO() as f:
       im = Image.fromarray(residual)
-      im.save(f, format='JPEG')
+      im.save(f, format='JPEG', quality= quality)
       return f.getvalue()
 
 def decodeFromJpeg(img_bytes):
