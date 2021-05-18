@@ -5,33 +5,34 @@ from decompression import build_frame
 import matplotlib.pyplot as plt
 from coding import encodeToJpeg, decodeFromJpeg
 
-def compress_sequence(frames, block_size, delta):
+def compress_sequence(frames, block_size, delta, quality= 95):
   '''
   Given a sequence of frames, compress it into residuals
   and motion vectors
   '''
   first_frame = frames[0]
-  first_frame_jpeg_bytes = encodeToJpeg(first_frame)
+  '''
+  Encodes and decodes the frame to use the frame that will 
+  be available to the decompressor
+  '''
+  first_frame_jpeg_bytes = encodeToJpeg(first_frame, quality)
   first_frame_jpeg = decodeFromJpeg(first_frame_jpeg_bytes)
   prev_frame = first_frame_jpeg
   residuals = []
   motion_vectors = []
   for (i, curr_frame) in enumerate(frames[1:]):
-    print(i)
+    print("Comprimindo o frame {}".format(i+1))
     blocks = get_blocks(curr_frame, block_size)
     residual, m, M, motion_vector = get_residual_and_vectors(prev_frame, blocks, delta)
-    # scaled_residual = residual.astype(np.float32)
-    # scaled_residual /= 255.0
-    # scaled_residual *= M
-    # scaled_residual += m
     residuals.append((residual, m, M))
     motion_vectors.append(motion_vector)
-    #print(residual_original)
-    #prev_frame = curr_frame
-    residuejpeg_bytes = encodeToJpeg(residual)
+    '''
+    Encodes and decodes residue and regenerate the frame 
+    to use the values that will be available to the decompressor
+    '''
+    residuejpeg_bytes = encodeToJpeg(residual, quality)
     residuejpeg = decodeFromJpeg(residuejpeg_bytes)
     rec_residue = scale_from_img(residuejpeg, m, M)
-    print(np.amin(residual), np.amin(rec_residue))
     prev_frame = build_frame(prev_frame, rec_residue, motion_vector, block_size)
   return (first_frame, residuals, motion_vectors)
 

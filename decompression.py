@@ -41,7 +41,6 @@ def build_frame(frame, residual, motion_vectors, block_size):
   
   next_frame = blocks_to_frame(blocks, frame.shape[0], frame.shape[1])
   next_frame += residual
-  print(np.amin(next_frame))
   next_frame = np.around(next_frame)
   next_frame[next_frame > 255] = 255
   next_frame[next_frame < 0] = 0

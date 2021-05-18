@@ -11,6 +11,7 @@ def codedVector(motion_vector):
       code += codeExpGolombExt(x)
     return code
 
+#CodeExpGolombExtended
 def codeExpGolombExt(number):
   if number > 0:
     value = 2*number - 1
@@ -22,7 +23,6 @@ def codeExpGolombExt(number):
   return code
 
 def encodeToJpeg(residual, quality = 95):
-    #bytesio_residual = io.BytesIO(residual.astype(np.uint8).tobytes())
     with io.BytesIO() as f:
       im = Image.fromarray(residual)
       im.save(f, format='JPEG', quality= quality)
@@ -49,11 +49,11 @@ def readNumber(file_bits: bs.Bits):
       b = file_bits[idx]
   
   for i in range(size+1):
-    #print(idx, file_bits.len, size)
     b = file_bits[idx]
     value += bs.Bits(bin= '0b1') if b else bs.Bits(bin= '0b0')
     idx += 1
 
+  #Undo the CodeExpGolombExtended
   value = value.uint - 1
   if value % 2 == 0:
     number = -1*value//2
@@ -67,6 +67,7 @@ def getFrame(video_bytes, first=False):
   vector = []
   offset = 0
 
+  #Case it is not the first frame, motion vector and values used in the scaling of the residue are written
   if not first:
     bits_size = int.from_bytes(video_bytes[:2], byteorder='big')
     bytes_used = int(np.ceil(bits_size/8))
@@ -101,11 +102,11 @@ def writeVector(motion_vectors, video_bits):
   return video_bits
 
 #f = file object
-def writeFrame(f, residual, motion_vectors, vmin, vmax, first=False):
-  residual_jpg = encodeToJpeg(residual)
+def writeFrame(f, residual, motion_vectors, vmin, vmax, first=False, quality = 95):
+  residual_jpg = encodeToJpeg(residual, quality)
   if not first:
     bits = writeVector(motion_vectors, bs.Bits(bin= '0b'))
-    #Tamanho em bits do vetor (incluso padding)
+    #Tamanho em bits do vetor
     bs.Bits(uint= bits.len, length=16).tofile(f)
     bits.tofile(f)
     bs.Bits(int= int(vmin), length=16).tofile(f)
