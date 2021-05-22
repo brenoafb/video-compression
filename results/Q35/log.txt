@@ -1,3 +1,3 @@
-Nosso: 29244.8
+Nosso: 19725.573333333334
 Só jpeg: 26655.28
-Jpeg com resíduo: 24020.106666666667
+Jpeg com resíduo: 23795.92
