@@ -1,5 +1,7 @@
 # MPEG-1 Coder: Estimação de Movimento
 
+- https://github.com/brenoafb/video-compression
+
 ## Informações
 
 **Versão Python:** 3.7.1
@@ -29,3 +31,8 @@ Será pedido para que seja informado o nome do arquivo ".yuv" de resolução CIQ
 O arquivo resultante da compressão é salvo no diretório local com o nome "video.vid". E o resultado após descompressão é mostrado frame a frame como última etapa da execução do algoritmo.
 
 Os códigos utilizados para comparações e análises estão presentes no código "teste.py", gerado a partir de um codebook do Google Colab (https://colab.research.google.com/drive/1uTQyqHDka0SKU6Dl3QK8hFL291azWVQd?usp=sharing) para maior interessados. As linhas de código que fazem o salvamento das imagens dos resultados estão comentadas a fim de serem utilizadas somente caso seja a escolha do usuário.
+
+## Fonte
+
+Obs.: Vídeos YUV obtidos de
+-  http://trace.eas.asu.edu/yuv/
